@@ -114,7 +114,7 @@ const main = () => {
         lastError = e
       })
   }
-  setInterval(() => runFetch(), 1000 * 60 * 5)
+  setInterval(() => runFetch(), 1000 * 60 * parseInt(process.env.REFRESH_MINUTES || 5))
   runFetch()
 
   const app = express()
