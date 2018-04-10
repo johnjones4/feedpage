@@ -64,13 +64,22 @@ const _fetchTreeFeeds = (tree, collector = []) => {
     return Promise.all(tree.children.map(child => _fetchTreeFeeds(child, _collector)))
       .then(children => {
         console.log('Done loading ' + tree.title)
-        const datedItems = _collector.filter(item => item.pubdate !== null)
-        datedItems.sort((a, b) => {
+        const datedUniqueItems = _collector.filter((item, i) => {
+          if (item.pubdate === null) {
+            return false
+          }
+          const similar = _collector.slice(0, i).find(_item => _item.link === item.link || _item.guid === item.guid)
+          if (similar) {
+            return false
+          }
+          return true
+        })
+        datedUniqueItems.sort((a, b) => {
           return b.pubdate.getTime() - a.pubdate.getTime()
         })
         return {
           'title': tree.title,
-          'items': datedItems.slice(0, parseInt(process.env.N_ITEMS || 10)).map(item => {
+          'items': datedUniqueItems.slice(0, parseInt(process.env.N_ITEMS || 10)).map(item => {
             return {
               title: item.title,
               link: item.link,
