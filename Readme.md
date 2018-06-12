@@ -10,7 +10,7 @@ FeedPage is a barebones RSS reader designed to focus on page load time and to ge
 
 ## Setup
 
-FeedPage may be run as a container with the following command:
+FeedPage may be run in a container with the following command:
 
 ```sh
 docker run \
