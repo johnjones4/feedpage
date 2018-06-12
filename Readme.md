@@ -21,3 +21,22 @@ docker run \
   --port 80:80 \
   johnjones4/feedpage
 ```
+
+## Development
+
+To setup FeedPage for development, run the following:
+
+```bash
+git clone git@github.com:johnjones4/FeedPage.git
+cd FeedPage
+touch .env
+```
+
+In the .env file just created, declared the enviroment variables specified under Setup, except for the PORT variable. Then, in that same directory, run:
+
+```bash
+npm install
+node index.js
+```
+
+In a web browser, open: http://localhost:8000.
