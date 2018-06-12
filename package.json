@@ -24,6 +24,7 @@
     "node-opml-parser": "^1.0.0",
     "opml-to-json": "0.0.3",
     "request": "^2.85.0",
-    "request-promise-native": "^1.0.5"
+    "request-promise-native": "^1.0.5",
+    "standard": "^11.0.1"
   }
 }
