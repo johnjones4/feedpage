@@ -17,5 +17,7 @@ docker run \
   --env OPML_URL=<URL to an OPML file> \
   --env N_ITEMS=<Number of items to display per category> \
   --env REFRESH_MINUTES=<How oftern to refresh the feed> \
+  --env PORT=80
+  --port 80:80
   johnjones4/feedpage
 ```
