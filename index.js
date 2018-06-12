@@ -128,12 +128,12 @@ const main = () => {
 
   const app = express()
   app.set('view engine', 'ejs')
-  app.get('/', function(req, res) {
+  app.get('/', (req, res) => {
     res.render('index', {
       feeds: feedCache || [],
       lastUpdated,
       lastError
-    });
+    })
   })
   app.listen(process.env.PORT || 8000)
 }

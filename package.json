@@ -1,24 +1,11 @@
 {
   "name": "feedpage",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/johnjones4/FeedPage.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/johnjones4/FeedPage/issues"
-  },
-  "homepage": "https://github.com/johnjones4/FeedPage#readme",
   "dependencies": {
     "dotenv": "^5.0.1",
     "ejs": "^2.5.8",
+    "eslint": "^4.19.1",
     "express": "^4.16.3",
     "feedparser": "^2.2.9",
     "node-opml-parser": "^1.0.0",
