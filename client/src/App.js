@@ -2,6 +2,9 @@ import React, { Component } from 'react';
 import lscache from 'lscache';
 import './App.css';
 
+const MODE_SUMMARY = 0
+const MODE_PAGE = 1
+
 class App extends Component {
   constructor (props) {
     super(props)
@@ -10,7 +13,8 @@ class App extends Component {
       feeds: [],
       lastUpdated: null,
       lastError: null,
-      activeItem: null
+      activeItem: null,
+      mode: MODE_SUMMARY
     }
   }
 
@@ -27,9 +31,11 @@ class App extends Component {
           name,
           feeds,
           lastUpdated,
-          lastError,
-          activeItem: (feeds.length > 0 && feeds[0].items.length > 0) ? feeds[0].items[0] : this.state.activeItem
+          lastError
         })
+        if ((feeds.length > 0 && feeds[0].items.length > 0)) {
+          this.setActiveItem(feeds[0].items[0])
+        }
       })
       .catch(err => {
         this.setState({
@@ -38,11 +44,15 @@ class App extends Component {
       })
   }
 
-  viewPage (item) {
+  setActiveItem (item) {
     this.setState({
       activeItem: item
     })
     lscache.set(item.link, new Date().getTime(), 60 * 24 * 30);
+  }
+
+  setMode (mode) {
+    this.setState({mode})
   }
 
   render () {
@@ -57,7 +67,12 @@ class App extends Component {
           </div>
           <div className='navbar-nav'>
             {
-              this.state.activeItem && (<a href={this.state.activeItem.link} target='_blank' rel='noopener noreferrer' className='btn btn-light pull-right'>Open</a>)
+              this.state.activeItem && (
+                <div className='btn-group pull-right'>
+                  <button className={['btn btn-light', this.state.mode === MODE_SUMMARY ? 'active' : null].join(' ')} onClick={() => this.setMode(MODE_SUMMARY)}>Summary</button>
+                  <button className={['btn btn-light', this.state.mode === MODE_PAGE ? 'active' : null].join(' ')} onClick={() => this.setMode(MODE_PAGE)}>Page</button>
+                </div>
+              )
             }
           </div>
         </nav>
@@ -76,7 +91,7 @@ class App extends Component {
                           feed.items.map((item, j) => {
                             const clickHandler = (event) => {
                               event.preventDefault()
-                              this.viewPage(item)
+                              this.setActiveItem(item)
                               return false
                             }
                             return (
@@ -102,7 +117,19 @@ class App extends Component {
               </div>
             </nav>
             <main className='col-md-9 ml-sm-auto'>
-              <iframe src={this.state.activeItem && this.state.activeItem.link} className='main-frame' title='Active Content'></iframe>
+              { this.state.mode === MODE_PAGE && this.state.activeItem && (<iframe src={this.state.activeItem.link} className='main-frame' title='Active Content'></iframe>)}
+              { this.state.mode === MODE_SUMMARY && this.state.activeItem && (
+                <div className='content-container'>
+                  <h1>{this.state.activeItem.title}</h1>
+                  {this.state.activeItem.image && (
+                    <img src={this.state.activeItem.image} className='clearfix img-fluid' alt={this.state.activeItem.title} />
+                  )}
+                  <div className='content-summary clearfix' dangerouslySetInnerHTML={{__html: this.state.activeItem.description}}></div>
+                  <p className='clearfix'>
+                    <a href={this.state.activeItem.link} target='_blank' className='btn btn-primary'>View More</a>
+                  </p>
+                </div>
+              )}
             </main>
           </div>
         </div>

@@ -57,6 +57,19 @@ const fetchFeed = (feed) => {
     })
 }
 
+const _getItemDescription = (item) => {
+  if (item['content:encoded'] && item['content:encoded']['#']) {
+    return item['content:encoded']['#']
+  } else if (item['atom:content'] && item['atom:content']['#']) {
+    return item['atom:content']['#']
+  } else if (item['atom:summary'] && item['atom:summary']['#']) {
+    return item['atom:summary']['#']
+  } else if (item.description) {
+    return item.description
+  }
+  return ''
+}
+
 const _fetchTreeFeeds = (tree, collector = []) => {
   if (tree.children) {
     const _collector = []
@@ -83,6 +96,8 @@ const _fetchTreeFeeds = (tree, collector = []) => {
             return {
               title: item.title,
               link: item.link,
+              description: _getItemDescription(item),
+              image: item.image && item.image.url ? item.image.url : null,
               subheads: [
                 item.author,
                 url.parse(item.link).hostname,

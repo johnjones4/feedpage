@@ -52,7 +52,8 @@ body {
   left: -9px;
   top: 45%;
   color: transparent;
-  text-shadow: 0 0 4px rgba(0,0,0,0.75);
+  text-shadow: 0 0 3px rgba(0,132,255,1);
+  
 }
 
 .sidebar .nav-link.visited:after {
@@ -130,4 +131,20 @@ body {
   width: 75%;
   height: 100%;
   border: none;
+}
+
+.content-container {
+  padding: 100px 50px 0 50px;
+  margin: auto;
+  max-width: 1024px;
+  width: 100%;
+}
+
+.content-summary {
+  margin: 0 0 1em 0;
+}
+
+.content-summary img {
+  max-width: 100%;
+  width: 100%;
 }
