@@ -124,7 +124,7 @@ class App extends Component {
                   {this.state.activeItem.image && (
                     <img src={this.state.activeItem.image} className='clearfix img-fluid' alt={this.state.activeItem.title} />
                   )}
-                  <div className='content-summary clearfix' dangerouslySetInnerHTML={{__html: this.state.activeItem.description}}></div>
+                  <div className='content-summary clearfix' dangerouslySetInnerHTML={{__html: this.state.activeItem.summary}}></div>
                   <p className='clearfix'>
                     <a href={this.state.activeItem.link} target='_blank' className='btn btn-primary'>View More</a>
                   </p>

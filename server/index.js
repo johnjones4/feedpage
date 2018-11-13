@@ -6,6 +6,7 @@ const express = require('express')
 const {promisify} = require('util')
 const url = require('url')
 const FeedParser = require('feedparser')
+const puppeteer = require('puppeteer')
 
 const fetchOPML = () => {
   return requestPromise(process.env.OPML_URL)
@@ -57,8 +58,10 @@ const fetchFeed = (feed) => {
     })
 }
 
-const _getItemDescription = (item) => {
-  if (item['content:encoded'] && item['content:encoded']['#']) {
+const _getItemSummary = (summaries, item) => {
+  if (summaries[item.link]) {
+    return summaries[item.link]
+  } else if (item['content:encoded'] && item['content:encoded']['#']) {
     return item['content:encoded']['#']
   } else if (item['atom:content'] && item['atom:content']['#']) {
     return item['atom:content']['#']
@@ -70,11 +73,11 @@ const _getItemDescription = (item) => {
   return ''
 }
 
-const _fetchTreeFeeds = (tree, collector = []) => {
+const _fetchTreeFeeds = (summaries, tree, collector = []) => {
   if (tree.children) {
     const _collector = []
     console.log('Loading ' + tree.title)
-    return Promise.all(tree.children.map(child => _fetchTreeFeeds(child, _collector)))
+    return Promise.all(tree.children.map(child => _fetchTreeFeeds(summaries, child, _collector)))
       .then(children => {
         console.log('Done loading ' + tree.title)
         const datedUniqueItems = _collector.filter((item, i) => {
@@ -96,7 +99,7 @@ const _fetchTreeFeeds = (tree, collector = []) => {
             return {
               title: item.title,
               link: item.link,
-              description: _getItemDescription(item),
+              summary: _getItemSummary(summaries, item),
               image: item.image && item.image.url ? item.image.url : null,
               subheads: [
                 item.author,
@@ -115,43 +118,112 @@ const _fetchTreeFeeds = (tree, collector = []) => {
   }
 }
 
-const fetchTreeFeeds = (tree) => {
-  return Promise.all(tree.children.map(child => _fetchTreeFeeds(child)))
+const fetchTreeFeeds = (summaries, tree) => {
+  return Promise.all(tree.children.map(child => _fetchTreeFeeds(summaries, child)))
+}
+
+const _fetchItemSummary = (browser, item) => {
+  return browser.newPage()
+    .then(page => {
+      return page.goto(item.link)
+        .then(() => {
+          return page.evaluate(() => {
+            const element = document.querySelector('[itemprop="articleBody"]')
+            return element ? element.innerHTML : null
+          })
+        })
+        .then(summary => {
+          return page.close()
+            .then(() => {
+              return (summary && summary.trim().length > 0) ? summary : item.summary
+            })
+        })
+    })
+    .catch(err => {
+      console.error(err)
+      return item.summary
+    })
+}
+
+const _findBestSummaries = (browser, items, newItems = [], i = 0) => {
+  if (i < items.length) {
+    const item = items[i]
+    if (!item.summary || item.summary.length < 1000) {
+      return _fetchItemSummary(browser, item)
+        .then(summary => {
+          newItems.push(Object.assign({}, item, {summary}))
+          return _findBestSummaries(browser, items, newItems, i + 1)
+        })
+    } else {
+      newItems.push(item)
+      return _findBestSummaries(browser, items, newItems, i + 1)
+    }
+  }
+  return Promise.resolve(newItems)
+}
+
+const findBestSummaries = (browser, feeds) => {
+  const summaries = {}
+  return Promise.all(feeds.map(feed => {
+    return _findBestSummaries(browser, feed.items)
+      .then(items => {
+        items.forEach(item => {
+          summaries[item.link] = item.summary
+        })
+        return Object.assign({}, feed, {items})
+      })
+  }))
+    .then(feeds => {
+      return {feeds, summaries}
+    })
 }
 
 const main = () => {
   let feedCache = null
   let lastUpdated = null
   let lastError = null
+  let summariesCache = {}
 
-  const runFetch = () => {
-    fetchOPML()
-      .then(data => fetchTreeFeeds(data))
-      .then(data => {
-        console.log('Feed updated')
-        feedCache = data
-        lastUpdated = new Date()
-        lastError = null
+  puppeteer.launch({args: ['--no-sandbox']})
+    .then((browser) => {
+      const runFetch = () => {
+        fetchOPML()
+          .then(data => fetchTreeFeeds(summariesCache, data))
+          .then(data => {
+            console.log('Feed updated')
+            feedCache = data
+            return findBestSummaries(browser, data)
+          })
+          .then(({summaries, feeds}) => {
+            console.log('Feed summaries updated')
+            summariesCache = summaries
+            feedCache = feeds
+            lastUpdated = new Date()
+            lastError = null
+          })
+          .catch(e => {
+            console.error(e)
+            lastError = e
+          })
+      }
+      setInterval(() => runFetch(), 1000 * 60 * parseInt(process.env.REFRESH_MINUTES || 5))
+      runFetch()
+    
+      const app = express()
+      app.use(express.static('build'))
+      app.get('/data', (req, res) => {
+        res.send({
+          feeds: feedCache || [],
+          lastUpdated,
+          lastError,
+          name: process.env.NAME || 'FeedPage'
+        })
       })
-      .catch(e => {
-        console.error(e)
-        lastError = e
-      })
-  }
-  setInterval(() => runFetch(), 1000 * 60 * parseInt(process.env.REFRESH_MINUTES || 5))
-  runFetch()
-
-  const app = express()
-  app.use(express.static('build'))
-  app.get('/data', (req, res) => {
-    res.send({
-      feeds: feedCache || [],
-      lastUpdated,
-      lastError,
-      name: process.env.NAME || 'FeedPage'
+      app.listen(process.env.PORT || 8000)
     })
-  })
-  app.listen(process.env.PORT || 8000)
+    .catch(e => {
+      console.error(e)
+    })
 }
 
 main()
