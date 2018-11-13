@@ -127,12 +127,13 @@ const main = () => {
   runFetch()
 
   const app = express()
-  app.set('view engine', 'ejs')
-  app.get('/', (req, res) => {
-    res.render('index', {
+  app.use(express.static('build'))
+  app.get('/data', (req, res) => {
+    res.send({
       feeds: feedCache || [],
       lastUpdated,
-      lastError
+      lastError,
+      name: process.env.NAME || 'FeedPage'
     })
   })
   app.listen(process.env.PORT || 8000)

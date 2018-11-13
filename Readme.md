@@ -28,15 +28,16 @@ To setup FeedPage for development, run the following:
 
 ```bash
 git clone git@github.com:johnjones4/FeedPage.git
-cd FeedPage
+cd FeedPage/server
 touch .env
 ```
 
 In the .env file just created, declared the enviroment variables specified under Setup, except for the PORT variable. Then, in that same directory, run:
 
 ```bash
-npm install
-node index.js
+make install
+make run-server
+make run-client
 ```
 
-In a web browser, open: http://localhost:8000.
+In a web browser, open: http://localhost:3000.
