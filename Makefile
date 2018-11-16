@@ -12,3 +12,7 @@ run-server:
 
 run-client:
 	cd client && npm start
+
+run: install
+	cd client && npm run build
+	cd server && node index.js
