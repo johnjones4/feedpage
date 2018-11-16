@@ -62,7 +62,7 @@ exports.fetchSummary = (url) => {
       const dom = new JSDOM(html, {
         url: url
       })
-      const element = dom.window.document.querySelector('[itemprop="articleBody"]')
+      const element = dom.window.document.querySelector('[itemprop="articleBody"], [role="main"] .postArticle-content, #storytext, article[data-type="article"] .body-copy-v2, [role="main"], [maincontentofpage=""], .article .article-body')
       if (element) {
         console.log(`Found extended summary for ${url}`)
         return element.innerHTML
