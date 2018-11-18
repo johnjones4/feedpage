@@ -24,9 +24,9 @@ const _getItemSummary = (item) => {
     } else if (item.description) {
       description = item.description
     }
-    if (!description || description.length < 1000) {
-      summaryManager.findSummary(item.link)
-    }
+    // if (!description || description.length < 1000) {
+    //   summaryManager.findSummary(item.link)
+    // }
     return description
   }
 }
