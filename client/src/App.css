@@ -38,6 +38,11 @@ body {
   }
 }
 
+.sidebar .nav-item {
+  display: block;
+  list-style: none;
+}
+
 .sidebar .nav-link {
   font-weight: 500;
   color: #333;
