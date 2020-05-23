@@ -1,29 +1,36 @@
 const fetchers = require('./fetchers')
 
+const CACHE_MAX = 200
+
 class SummaryManager {
   constructor (database, jobQueue) {
     this.database = database
     this.jobQueue = jobQueue
-    this.cache = {}
+    this.cache = []
+    this.cachePointer = 0
   }
 
   get (url) {
-    if (this.cache[url] && this.cache[url] !== true) {
-      return this.cache[url]
-    } else {
+    const summary = this.cache.find(item => item.url === url)
+    if (!summary) {
       return null
     }
+    return summary.text
+  }
+
+  set (url, text) {
+    this.cache[this.cachePointer] = { text, url }
+    this.cachePointer = (this.cachePointer + 1) % CACHE_MAX
   }
 
   findSummary (url) {
-    if (!this.cache[url]) {
-      this.cache[url] = true
+    if (!this.get(url)) {
       this.jobQueue.enqueue(() => {
         return fetchers.fetchSummary(url)
       })
         .then(summary => {
           if (summary) {
-            this.cache[url] = summary
+            this.set(url, summary)
             this.database.setFeedItemSummary(url, summary)
           }
         })

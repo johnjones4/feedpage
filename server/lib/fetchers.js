@@ -2,8 +2,10 @@ const {promisify} = require('util')
 const opmlToJSON = require('opml-to-json')
 const requestPromise = require('request-promise-native')
 const request = require('request')
+const extractor = require('node-article-extractor')
 const FeedParser = require('feedparser')
 const {JSDOM} = require('jsdom')
+const htmlToText = require('html-to-text')
 
 exports.fetchOPML = () => {
   return requestPromise(process.env.OPML_URL)
@@ -58,17 +60,40 @@ exports.fetchFeed = (feed) => {
 exports.fetchSummary = (url) => {
   console.log(`Finding extended summary for ${url}`)
   return requestPromise(url)
-    .then((html) => {
-      const dom = new JSDOM(html, {
+    .then((response) => {
+      const dom = new JSDOM(response, {
         url: url
       })
-      const element = dom.window.document.querySelector('[itemprop="articleBody"], [role="main"] .postArticle-content, #storytext, article[data-type="article"] .body-copy-v2, [role="main"], [maincontentofpage=""], .article .article-body')
+      const element = dom.window.document.querySelector([
+        '[itemprop="articleBody"]',
+        '[property="schema:articleBody content:encoded"]',
+        '[role="main"] .postArticle-content',
+        'article[data-type="article"] .body-copy-v2',
+        '[role="main"]',
+        '[maincontentofpage=""]',
+        '.instapaper_body',
+        '.article .article-body',
+        '.post-entry',
+        '#content article',
+        '#main article',
+        '#storytext article',
+        '#main-content article',
+        '#content',
+        '#main',
+        '#storytext',
+        '#main-content',
+        '#readme'
+      ].join(', '))
       if (element) {
         console.log(`Found extended summary for ${url}`)
-        return element.innerHTML
-      } else {
-        return null
+        return htmlToText.fromString(element.innerHTML)
       }
+      const data = extractor(response)
+      console.log(data)
+      if (data) {
+        return data.text
+      }
+      return null
     })
     .catch(err => {
       console.error(err)

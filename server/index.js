@@ -14,20 +14,7 @@ const _getItemSummary = (item) => {
   if (summaryManager.get(item.link)) {
     return summaryManager.get(item.link)
   } else {
-    let description = null
-    if (item['content:encoded'] && item['content:encoded']['#']) {
-      description = item['content:encoded']['#']
-    } else if (item['atom:content'] && item['atom:content']['#']) {
-      description = item['atom:content']['#']
-    } else if (item['atom:summary'] && item['atom:summary']['#']) {
-      description = item['atom:summary']['#']
-    } else if (item.description) {
-      description = item.description
-    }
-    // if (!description || description.length < 1000) {
-    //   summaryManager.findSummary(item.link)
-    // }
-    return description
+    return summaryManager.findSummary(item.link)
   }
 }
 
