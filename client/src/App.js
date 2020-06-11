@@ -14,7 +14,8 @@ class App extends Component {
       lastUpdated: null,
       lastError: null,
       activeItem: null,
-      mode: MODE_SUMMARY
+      mode: MODE_SUMMARY,
+      summaryMap: {}
     }
   }
 
@@ -44,10 +45,32 @@ class App extends Component {
       })
   }
 
+  fetchSummary (url) {
+    fetch('/summary?url=' + encodeURIComponent(url))
+      .then(res => res.json())
+      .then(({summary}) => {
+        const summaryMap = {
+          ...this.state.summaryMap
+        }
+        summaryMap[url] = summary
+        this.setState({
+          summaryMap
+        })
+      })
+      .catch(err => {
+        this.setState({
+          lastError: err ? (err.message || (err+'')) : null
+        })
+      })
+  }
+
   setActiveItem (item) {
     this.setState({
       activeItem: item
     })
+    if (!this.state.summaryMap[item.link]) {
+      this.fetchSummary(item.link)
+    }
     lscache.set(item.link, new Date().getTime(), 60 * 24 * 30);
   }
 
@@ -124,9 +147,9 @@ class App extends Component {
                   {this.state.activeItem.image && (
                     <img src={this.state.activeItem.image} className='clearfix img-fluid' alt={this.state.activeItem.title} />
                   )}
-                  <div className='content-summary clearfix' dangerouslySetInnerHTML={{__html: this.state.activeItem.summary}}></div>
+                  <div className='content-summary clearfix' dangerouslySetInnerHTML={{__html: this.state.summaryMap[this.state.activeItem.link]}}></div>
                   <p className='clearfix'>
-                    <a href={this.state.activeItem.link} target='_blank' className='btn btn-primary'>View More</a>
+                    <a href={this.state.activeItem.link} target='_blank' rel='noopener noreferrer' className='btn btn-primary'>View More</a>
                   </p>
                 </div>
               )}

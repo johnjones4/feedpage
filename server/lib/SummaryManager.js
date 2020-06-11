@@ -24,17 +24,21 @@ class SummaryManager {
   }
 
   findSummary (url) {
-    if (!this.get(url)) {
-      this.jobQueue.enqueue(() => {
-        return fetchers.fetchSummary(url)
-      })
-        .then(summary => {
-          if (summary) {
-            this.set(url, summary)
-            this.database.setFeedItemSummary(url, summary)
-          }
-        })
+    const summary = this.get(url)
+    if (summary) {
+      return summary
     }
+    return this.jobQueue.enqueue(() => {
+      return fetchers.fetchSummary(url)
+    })
+      .then(summary => {
+        if (summary) {
+          this.set(url, summary)
+          this.database.setFeedItemSummary(url, summary)
+          return summary
+        }
+        return ''
+      })
   }
 }
 

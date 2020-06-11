@@ -5,7 +5,7 @@ const request = require('request')
 const extractor = require('node-article-extractor')
 const FeedParser = require('feedparser')
 const {JSDOM} = require('jsdom')
-const htmlToText = require('html-to-text')
+const sanitizeHtml = require('sanitize-html')
 
 exports.fetchOPML = () => {
   return requestPromise(process.env.OPML_URL)
@@ -43,6 +43,7 @@ exports.fetchFeed = (feed) => {
       var stream = this
       var item
       while ((item = stream.read()) !== null) {
+        delete item.summary
         items.push(item)
       }
     })
@@ -86,10 +87,15 @@ exports.fetchSummary = (url) => {
       ].join(', '))
       if (element) {
         console.log(`Found extended summary for ${url}`)
-        return htmlToText.fromString(element.innerHTML)
+        return sanitizeHtml(element.innerHTML, {
+          allowedTags: [ 'b', 'i', 'em', 'strong', 'a', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6' ],
+          allowedAttributes: {
+            'a': [ 'href' ]
+          },
+          allowedIframeHostnames: []
+        })
       }
       const data = extractor(response)
-      console.log(data)
       if (data) {
         return data.text
       }

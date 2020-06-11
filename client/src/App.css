@@ -147,7 +147,7 @@ body {
 
 .content-summary {
   margin: 0 0 1em 0;
-  white-space: pre-wrap;
+  /* white-space: pre-wrap; */
 }
 
 .content-summary img {

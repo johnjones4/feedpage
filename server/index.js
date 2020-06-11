@@ -10,14 +10,6 @@ const database = new Database()
 const jobQueue = new JobQueue()
 const summaryManager = new SummaryManager(database, jobQueue)
 
-const _getItemSummary = (item) => {
-  if (summaryManager.get(item.link)) {
-    return summaryManager.get(item.link)
-  } else {
-    return summaryManager.findSummary(item.link)
-  }
-}
-
 const updateSectionFeeds = (sectionTitle, allFeedItems) => {
   const datedUniqueItems = allFeedItems.filter((item, i) => {
     if (item.pubdate === null) {
@@ -36,7 +28,7 @@ const updateSectionFeeds = (sectionTitle, allFeedItems) => {
     return {
       title: item.title,
       link: item.link,
-      summary: _getItemSummary(item),
+      summary: item.summary,
       image: item.image && item.image.url ? item.image.url : null,
       subheads: [
         item.author,
@@ -98,6 +90,15 @@ const main = () => {
       lastError,
       name: process.env.NAME || 'FeedPage'
     })
+  })
+  app.get('/summary', async (req, res, next) => {
+    try {
+      res.send({
+        summary: await summaryManager.findSummary(req.query.url)
+      })
+    } catch (e) {
+      next(e)
+    }
   })
   app.listen(process.env.PORT || 8000)
 }
