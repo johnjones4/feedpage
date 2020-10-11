@@ -1,0 +1,26 @@
+.Reader {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 300;
+  font-size: 16px;
+  line-height: 1.25em;
+  max-width: 900px;
+  margin: auto;
+  padding: 0 20px;
+}
+
+.Reader-section {
+  border-bottom: solid 1px #ccc;
+  padding: 0 0 20px 0;
+  margin: 20px 0;
+}
+
+.Reader-section-title {
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: 1.5em;
+  text-align: center;
+}
+
+.Reader-section-items {
+  margin: 20px 0 0 0;
+}
