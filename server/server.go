@@ -22,5 +22,5 @@ func main() {
 	store = feedpage.CurrentFeeds{Sections: make([]feedpage.FeedSection, 0)}
 	go feedpage.FeedEngine(os.Getenv("OPML_URL"), &store)
 	http.HandleFunc("/api/feed", handler)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":" + os.Getenv("PORT"), nil))
 }
