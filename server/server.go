@@ -21,6 +21,9 @@ func feedHandler(w http.ResponseWriter, r *http.Request) {
 func statusHandler(w http.ResponseWriter, r *http.Request) {
 	store.Mux.Lock()
 	info, _ := json.Marshal(store.Status)
+	if len(store.Status.Failures) != 0 {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 	store.Mux.Unlock()
 	fmt.Fprint(w, string(info))
 }
