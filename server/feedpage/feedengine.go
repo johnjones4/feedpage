@@ -12,7 +12,11 @@ import (
 
 type CurrentFeeds struct {
 	Sections []FeedSection `json:"sections"`
-	Mux      sync.Mutex
+	Status   struct {
+		Failures map[string]error `json:"failures"`
+		OK       bool             `json:"ok"`
+	}
+	Mux sync.Mutex
 }
 
 type FeedSection struct {
@@ -32,6 +36,7 @@ func FeedEngine(url string, currentFeeds *CurrentFeeds) {
 	for {
 		feedsections := make([]FeedSection, 0)
 		sections, err := GetFeeds(url)
+		failures := make(map[string]error)
 		if err != nil {
 			fmt.Println("OPML fetch failed: ", err)
 		} else {
@@ -42,6 +47,7 @@ func FeedEngine(url string, currentFeeds *CurrentFeeds) {
 					feed, err := fp.ParseURL(outline.XMLUrl)
 					if err != nil {
 						fmt.Println("Feed fetch failed: ", err)
+						failures[outline.XMLUrl] = err
 					} else {
 						for _, item := range feed.Items {
 							pubdate := time.Now()
@@ -65,6 +71,8 @@ func FeedEngine(url string, currentFeeds *CurrentFeeds) {
 			fmt.Printf("Loaded %d feeds\n", len(feedsections))
 			currentFeeds.Mux.Lock()
 			currentFeeds.Sections = feedsections
+			currentFeeds.Status.Failures = failures
+			currentFeeds.Status.OK = len(failures) == 0
 			currentFeeds.Mux.Unlock()
 			time.Sleep(10 * time.Minute)
 		}
