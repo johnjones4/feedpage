@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import './Reader.css';
 import Story from './Story';
+import { Container } from 'reactstrap'
 
 export default class Reader extends Component {
   constructor (props) {
@@ -29,18 +29,18 @@ export default class Reader extends Component {
 
   render () {
     return (
-      <div className='Reader'>
+      <Container>
         { this.state.feed.map(section => (
-          <div className='Reader-section' key={section.title}>
-            <h1 className='Reader-section-title'>
+          <section key={section.title}>
+            <h1>
               { section.title }
             </h1>
-            <div className='Reader-section-items'>
+            <div>
               { section.items.map(story => (<Story story={story} key={story.url} read={this.state.readURLs.indexOf(story.url) >= 0} onRead={() => this.markAsRead(story.url)} />)) }
             </div>
-          </div>
+          </section>
         )) }
-      </div>
+      </Container>
     );
   }
 }

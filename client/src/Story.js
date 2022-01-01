@@ -1,4 +1,5 @@
 import React from 'react'
+import { Card, CardBody, CardTitle, CardSubtitle, CardText } from 'reactstrap'
 import './Story.css'
 
 export default ({ story, onRead, read}) => {
@@ -10,23 +11,25 @@ export default ({ story, onRead, read}) => {
     publisher
   } = story
   return (
-    <div className={['Story', read ? 'Story-read' : 'Story-unread'].join(' ')}>
-      <h2 className='Story-title'>
-        <a href={url} target='_blank' rel='noopener noreferrer' onClick={() => onRead()}>
-          {title}
-        </a>
-      </h2>
-      <h3 className='Story-meta'>
-        <span className='Story-meta-item'>
-          {new Date(Date.parse(pubDate)).toLocaleString()}
-        </span>
-        <span className='Story-meta-item'>
-          {publisher}
-        </span>
-      </h3>
-      <p className='Story-description'>
-        {description}
-      </p>
-    </div>
+    <Card className={['Story', read ? 'read' : 'unread'].join(' ')}>
+      <CardBody>
+        <CardTitle tag='h4'>
+          <a href={url} target='_blank' rel='noopener noreferrer' onClick={() => onRead()}>
+            {title}
+          </a>
+        </CardTitle>
+        <CardSubtitle  tag='h6'>
+          <span className='Story-metadata'>
+            {new Date(Date.parse(pubDate)).toLocaleString()}
+          </span>
+          <span className='Story-metadata'>
+            {publisher}
+          </span>
+        </CardSubtitle>
+        <CardText>
+          {description}
+        </CardText>
+      </CardBody>
+    </Card>
   )
 }

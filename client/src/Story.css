@@ -1,35 +1,15 @@
 .Story {
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.5);
-  padding: 15px;
-  margin: 0 0 20px 0;
+  margin-bottom: 1em;
 }
 
-.Story-read {
+.Story-metadata::after {
+  content: ' | ';
+}
+
+.Story-metadata:last-child::after {
+  content: '';
+}
+
+.Story.read {
   opacity: 0.5;
-}
-
-.Story-title {
-  font-size: 1.25em;
-  font-weight: 400;
-  margin: 0 0 10px 0;
-  color: #3777FF;
-}
-
-.Story-title a {
-  text-decoration: none;
-  color: inherit;
-}
-
-.Story-title a:hover {
-  text-decoration: underline;
-}
-
-.Story-meta {
-  font-size: 0.8em;
-  margin: 0 0 10px 0;
-}
-
-.Story-meta-item {
-  margin-right: 10px;
 }
