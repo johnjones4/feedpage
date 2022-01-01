@@ -2,33 +2,34 @@ package feedpage
 
 import (
 	"fmt"
-	"time"
-	"sync"
-	"github.com/mmcdole/gofeed"
 	"sort"
-	"github.com/grokify/html-strip-tags-go"
+	"sync"
+	"time"
+
+	strip "github.com/grokify/html-strip-tags-go"
+	"github.com/mmcdole/gofeed"
 )
 
 type CurrentFeeds struct {
 	Sections []FeedSection `json:"sections"`
-	Mux sync.Mutex
+	Mux      sync.Mutex
 }
 
 type FeedSection struct {
-	Title string `json:"title"`
+	Title string     `json:"title"`
 	Items []FeedItem `json:"items"`
 }
 
 type FeedItem struct {
-	Title string `json:"title"`
-	URL string `json:"url"`
-	Description string `json:"description"`
-	PubDate time.Time `json:"pubDate"`
-	Publisher string `json:"publisher"`
+	Title       string    `json:"title"`
+	URL         string    `json:"url"`
+	Description string    `json:"description"`
+	PubDate     time.Time `json:"pubDate"`
+	Publisher   string    `json:"publisher"`
 }
 
 func FeedEngine(url string, currentFeeds *CurrentFeeds) {
-	for true {
+	for {
 		feedsections := make([]FeedSection, 0)
 		sections, err := GetFeeds(url)
 		if err != nil {
@@ -53,7 +54,7 @@ func FeedEngine(url string, currentFeeds *CurrentFeeds) {
 					}
 				}
 				fmt.Printf("Loaded %d items\n", len(feedSection.Items))
-				sort.Slice(feedSection.Items, func (a int, b int) bool {
+				sort.Slice(feedSection.Items, func(a int, b int) bool {
 					return feedSection.Items[b].PubDate.Unix() < feedSection.Items[a].PubDate.Unix()
 				})
 				if len(feedSection.Items) > 10 {

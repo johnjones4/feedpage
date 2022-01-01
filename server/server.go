@@ -1,12 +1,12 @@
 package main
 
 import (
-    "fmt"
-    "log"
-		"net/http"
-		"feedpage"
-		"encoding/json"
-		"os"
+	"encoding/json"
+	"fmt"
+	"log"
+	"main/feedpage"
+	"net/http"
+	"os"
 )
 
 var store feedpage.CurrentFeeds
@@ -22,5 +22,5 @@ func main() {
 	store = feedpage.CurrentFeeds{Sections: make([]feedpage.FeedSection, 0)}
 	go feedpage.FeedEngine(os.Getenv("OPML_URL"), &store)
 	http.HandleFunc("/api/feed", handler)
-	log.Fatal(http.ListenAndServe(":" + os.Getenv("PORT"), nil))
+	log.Fatal(http.ListenAndServe(":"+os.Getenv("PORT"), nil))
 }
