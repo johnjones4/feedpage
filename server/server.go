@@ -20,8 +20,8 @@ func feedHandler(w http.ResponseWriter, r *http.Request) {
 
 func statusHandler(w http.ResponseWriter, r *http.Request) {
 	store.Mux.Lock()
-	info, _ := json.Marshal(store.Status)
-	if len(store.Status.Failures) != 0 {
+	info, _ := json.Marshal(store.Failures)
+	if store.Failures.IsInFailureState() {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 	store.Mux.Unlock()
@@ -29,7 +29,10 @@ func statusHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	store = feedpage.CurrentFeeds{Sections: make([]feedpage.FeedSection, 0)}
+	store = feedpage.CurrentFeeds{
+		Sections: make([]feedpage.FeedSection, 0),
+		Failures: &feedpage.FailureBuffer{},
+	}
 	go feedpage.FeedEngine(os.Getenv("OPML_URL"), &store)
 	http.HandleFunc("/api/feed", feedHandler)
 	http.HandleFunc("/api/status", statusHandler)

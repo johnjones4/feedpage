@@ -10,12 +10,64 @@ import (
 	"github.com/mmcdole/gofeed"
 )
 
-type CurrentFeeds struct {
-	Sections []FeedSection `json:"sections"`
-	Status   struct {
-		Failures map[string]string `json:"failures"`
+type Failure struct {
+	URL       string    `json:"url"`
+	Message   string    `json:"message"`
+	Timestamp time.Time `json:"timestamp"`
+}
+
+type FailureBuffer struct {
+	Failures [10]Failure `json:"failures"`
+	pointer  int
+}
+
+func (b *FailureBuffer) addFailure(url string, err error) {
+	b.Failures[b.pointer] = Failure{url, err.Error(), time.Now()}
+	fmt.Print(b.Failures[b.pointer])
+	b.pointer++
+	if b.pointer >= len(b.Failures) {
+		b.pointer = 0
 	}
-	Mux sync.Mutex
+}
+
+func (b *FailureBuffer) copy() FailureBuffer {
+	fb := FailureBuffer{
+		pointer: b.pointer,
+	}
+	copy(fb.Failures[:], b.Failures[:])
+	return fb
+}
+
+func (b *FailureBuffer) IsInFailureState() bool {
+	var lastFailure *Failure
+	index := b.pointer
+	diffsTotal := 0.0
+	diffsN := 0.0
+	for i := 0; i < len(b.Failures); i++ {
+		index -= 1
+		if index < 0 {
+			index = len(b.Failures) - 1
+		}
+		failure := b.Failures[index]
+		if failure.Message != "" {
+			if lastFailure != nil {
+				diffsTotal += float64(lastFailure.Timestamp.Sub(failure.Timestamp))
+				diffsN++
+			}
+			lastFailure = &failure
+		}
+	}
+	if diffsN == 0 {
+		return false
+	}
+	avgDiff := diffsTotal / diffsN
+	return avgDiff/float64(time.Second) < 60
+}
+
+type CurrentFeeds struct {
+	Sections []FeedSection
+	Failures *FailureBuffer
+	Mux      sync.Mutex
 }
 
 type FeedSection struct {
@@ -35,7 +87,9 @@ func FeedEngine(url string, currentFeeds *CurrentFeeds) {
 	for {
 		feedsections := make([]FeedSection, 0)
 		sections, err := GetFeeds(url)
-		failures := make(map[string]string)
+		currentFeeds.Mux.Lock()
+		failures := currentFeeds.Failures.copy()
+		currentFeeds.Mux.Unlock()
 		if err != nil {
 			fmt.Println("OPML fetch failed: ", err)
 		} else {
@@ -46,7 +100,7 @@ func FeedEngine(url string, currentFeeds *CurrentFeeds) {
 					feed, err := fp.ParseURL(outline.XMLUrl)
 					if err != nil {
 						fmt.Println("Feed fetch failed: ", err)
-						failures[outline.XMLUrl] = err.Error()
+						(&failures).addFailure(outline.XMLUrl, err)
 					} else {
 						for _, item := range feed.Items {
 							pubdate := time.Now()
@@ -70,7 +124,7 @@ func FeedEngine(url string, currentFeeds *CurrentFeeds) {
 			fmt.Printf("Loaded %d feeds\n", len(feedsections))
 			currentFeeds.Mux.Lock()
 			currentFeeds.Sections = feedsections
-			currentFeeds.Status.Failures = failures
+			currentFeeds.Failures = &failures
 			currentFeeds.Mux.Unlock()
 			time.Sleep(10 * time.Minute)
 		}
