@@ -1,4 +1,4 @@
-PROJECT=$(shell basename $(shell pwd) | awk '{print tolower($0)}')
+PROJECT=$(shell basename $(shell pwd))
 TAG=ghcr.io/johnjones4/${PROJECT}
 
 info:
