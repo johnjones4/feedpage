@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Feedpage</title>
+  </head>
+  <body>
+    <div role="main">
+      {{ range .Sections }}
+        <section>
+          <h1>{{ .Title }}</h1>
+          {{ range .Items }}
+            <article>
+              <h2>
+                <a href="{{ .URL }}" target="_blank">
+                  {{ .Title }}
+                </a>
+              </h2>
+              <h4>
+                {{ .Publisher }} | {{ .PubDate }}
+              </h4>
+              <p>
+                {{ .Description }}
+              </p>
+              <br/>
+            </article>
+          {{ end }}
+          <hr />
+        </section>
+      {{ end }}
+    </div>
+  </body>
+</html>
